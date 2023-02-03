@@ -6,9 +6,15 @@ interface Suitability {
   destinationIndex: number;
 }
 
+interface DriverDestinationPair {
+  driverName: string;
+  destination: string;
+}
+
 (() => {
   const commandLineArguments = process.argv;
 
+  // Handle Basic Command Line File Validation
   if (!commandLineArguments[2]) {
     console.log('shipment destinations text file is required.');
     return;
@@ -18,17 +24,18 @@ interface Suitability {
     console.log('driver names text file is required.');
     return;
   }
-  const shipmentDestinations = readFileSync(
-    commandLineArguments[2],
-    'utf8',
-  ).split('\n');
-  const driverNames = readFileSync(commandLineArguments[3], 'utf8').split('\n');
 
+  const destinations = readFileSync(commandLineArguments[2], 'utf8')
+    .split('\n')
+    .filter((value) => value);
+  const drivers = readFileSync(commandLineArguments[3], 'utf8')
+    .split('\n')
+    .filter((value) => value);
   const driverNameVowelCount: Record<number, number> = {};
   const driverNameConsonantCount: Record<number, number> = {};
 
-  for (let i = 0; i < driverNames.length; i++) {
-    const driverName = driverNames[i];
+  for (let i = 0; i < drivers.length; i++) {
+    const driverName = drivers[i];
     const vowelConsonantCounts = getVowelConsonantCounts(driverName);
 
     driverNameVowelCount[i] = vowelConsonantCounts.vowelCount;
@@ -37,12 +44,12 @@ interface Suitability {
 
   const suitabilityScores: Suitability[] = [];
 
-  for (let i = 0; i < shipmentDestinations.length; i++) {
-    const shipmentDestination = shipmentDestinations[i];
-    const isEven = shipmentDestination.length % 2 === 0;
+  for (let i = 0; i < destinations.length; i++) {
+    const destination = destinations[i];
+    const isEven = destination.length % 2 === 0;
 
-    for (let j = 0; j < driverNames.length; j++) {
-      const driverName = driverNames[j];
+    for (let j = 0; j < drivers.length; j++) {
+      const driverName = drivers[j];
       let score = 0;
 
       if (isEven) {
@@ -54,7 +61,7 @@ interface Suitability {
       // Check for common factors
       const greatestCommonDivisor = getGreatestCommonDivisor(
         driverName.length,
-        shipmentDestination.length,
+        destination.length,
       );
 
       if (greatestCommonDivisor > 1) {
@@ -77,16 +84,30 @@ interface Suitability {
   const destinationIsAssigned: Record<number, boolean> = {};
 
   let totalSuitabilityScore = 0;
+  const driverDestinationPairs: DriverDestinationPair[] = [];
 
   for (const suitabilityScore of suitabilityScores) {
     if (
       !driverIsAssigned[suitabilityScore.driverIndex] &&
       !destinationIsAssigned[suitabilityScore.destinationIndex]
     ) {
+      driverDestinationPairs.push({
+        driverName: drivers[suitabilityScore.driverIndex],
+        destination: destinations[suitabilityScore.destinationIndex],
+      });
       totalSuitabilityScore = totalSuitabilityScore + suitabilityScore.score;
+
       driverIsAssigned[suitabilityScore.driverIndex] = true;
       destinationIsAssigned[suitabilityScore.destinationIndex] = true;
     }
+  }
+
+  // Print Output
+  console.log('Total Suitability Score -> ' + totalSuitabilityScore);
+  for (const driverDestinationPair of driverDestinationPairs) {
+    console.log(
+      `Driver (${driverDestinationPair.driverName}) + Destination (${driverDestinationPair.destination})`,
+    );
   }
 })();
 
