@@ -2,9 +2,20 @@
 
 ### Usage
 
-1. Run `yarn` or `yarn install`
-2. Run `yarn build` to transpile the typescript file into the output in `build/index.js`.
-3. Run `node build/index.js destinations.txt drivers.txt`
+1. Run `npm install`
+2. Run `npm run build` to transpile the typescript file into the output in `build/index.js`.
+3. Run `node build/index.js destinations.txt drivers.txt` with your specific file paths. Alternatively, you can add your files to the `src/input_files` directory, and edit the `.vscode/launch.json` args to debug your specific files.
+
+### Assumptions
+
+- Basic file path validation
+- Primary function is wrapped in a self-executing function to allow for returning from the initial file validation checks.
+- Regular English letters (a-z); no letter with accents
+- 'y' is only a vowel under specific conditions (no other vowels and at the end of a word). However, we ignore the cases where 'y' is in the middle or end of a syllable.
+
+### Coding Style
+
+I prefer explicitly named variable & function names that are self-documenting. Additionally I like to assign the results of statements into variables before being used or returned as I find it helpful when debugging code. Lastly, I like to write code my sequentially rather than deeply nested ifs/loops as I find it easier to read and follow.
 
 ### Example Command
 

@@ -1,57 +1,41 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getGreatestCommonDivisor = exports.getVowelConsonantCounts = void 0;
+exports.calculateSuitabilityScore = exports.getGreatestCommonDivisor = exports.getVowelConsonantCounts = void 0;
 var fs_1 = require("fs");
 (function () {
     var commandLineArguments = process.argv;
-    // Handle Basic Command Line File Validation
+    // Handle basic command line file validation
     if (!commandLineArguments[2]) {
-        console.log('shipment destinations text file is required.');
+        console.log('Shipment destinations text file is required.');
         return;
     }
     if (!commandLineArguments[3]) {
-        console.log('driver names text file is required.');
+        console.log('Driver names text file is required.');
         return;
     }
+    // Read input files
     var destinations = (0, fs_1.readFileSync)(commandLineArguments[2], 'utf8')
         .split('\n')
         .filter(function (value) { return value; });
     var drivers = (0, fs_1.readFileSync)(commandLineArguments[3], 'utf8')
         .split('\n')
         .filter(function (value) { return value; });
-    var driverNameVowelCount = {};
-    var driverNameConsonantCount = {};
+    var suitabilityScores = [];
+    // Calculate the suitability scores for every pair of driver + destination
     for (var i = 0; i < drivers.length; i++) {
         var driverName = drivers[i];
-        var vowelConsonantCounts = getVowelConsonantCounts(driverName);
-        driverNameVowelCount[i] = vowelConsonantCounts.vowelCount;
-        driverNameConsonantCount[i] = vowelConsonantCounts.consonantCount;
-    }
-    var suitabilityScores = [];
-    for (var i = 0; i < destinations.length; i++) {
-        var destination = destinations[i];
-        var isEven = destination.length % 2 === 0;
-        for (var j = 0; j < drivers.length; j++) {
-            var driverName = drivers[j];
-            var score = 0;
-            if (isEven) {
-                score = driverNameVowelCount[j] * 1.5;
-            }
-            else {
-                score = driverNameConsonantCount[j] * 1;
-            }
-            // Check for common factors
-            var greatestCommonDivisor = getGreatestCommonDivisor(driverName.length, destination.length);
-            if (greatestCommonDivisor > 1) {
-                score = score * 1.5;
-            }
+        var driverVowelConsonantCounts = getVowelConsonantCounts(driverName);
+        for (var j = 0; j < destinations.length; j++) {
+            var destination = destinations[j];
+            var score = calculateSuitabilityScore(driverName, destination, driverVowelConsonantCounts);
             suitabilityScores.push({
                 score: score,
-                driverIndex: j,
-                destinationIndex: i,
+                driverIndex: i,
+                destinationIndex: j,
             });
         }
     }
+    // Sort scores by descending order
     suitabilityScores.sort(function (a, b) {
         return b.score - a.score;
     });
@@ -59,6 +43,7 @@ var fs_1 = require("fs");
     var destinationIsAssigned = {};
     var totalSuitabilityScore = 0;
     var driverDestinationPairs = [];
+    // Calculate the total suitability score and ideal driver + destination matches
     for (var _i = 0, suitabilityScores_1 = suitabilityScores; _i < suitabilityScores_1.length; _i++) {
         var suitabilityScore = suitabilityScores_1[_i];
         if (!driverIsAssigned[suitabilityScore.driverIndex] &&
@@ -73,29 +58,56 @@ var fs_1 = require("fs");
             destinationIsAssigned[suitabilityScore.destinationIndex] = true;
         }
     }
-    // Print Output
+    // Print output
     console.log('Total Suitability Score -> ' + totalSuitabilityScore);
     for (var _a = 0, driverDestinationPairs_1 = driverDestinationPairs; _a < driverDestinationPairs_1.length; _a++) {
         var driverDestinationPair = driverDestinationPairs_1[_a];
         console.log("Score (".concat(driverDestinationPair.score, ") + Driver (").concat(driverDestinationPair.driverName, ") + Destination (").concat(driverDestinationPair.destination, ")"));
     }
 })();
-function getVowelConsonantCounts(word) {
-    var lowercaseWord = word.toLowerCase();
+/**
+ * Counts the number of vowels and consonants in a string.
+ *
+ * Counts 'y' as a vowel only in case where it is the only vowel and
+ * at the end of a word. Ignores counting 'y' as a vowel when it is in
+ * or end of a syllable.
+ *
+ * @param string
+ * @returns { vowelCount: number; consonantCount: number; }
+ */
+function getVowelConsonantCounts(string) {
+    var lowercaseString = string.toLowerCase();
+    var regexPattern = /[^A-Za-z]/g;
+    var lettersOnlyString = lowercaseString.replace(regexPattern, '');
     var vowelCount = 0;
     var consonantCount = 0;
-    for (var _i = 0, lowercaseWord_1 = lowercaseWord; _i < lowercaseWord_1.length; _i++) {
-        var character = lowercaseWord_1[_i];
+    for (var _i = 0, lettersOnlyString_1 = lettersOnlyString; _i < lettersOnlyString_1.length; _i++) {
+        var character = lettersOnlyString_1[_i];
         if (character === 'a' ||
             character === 'e' ||
             character === 'i' ||
             character === 'o' ||
-            character === 'u' ||
-            character === 'y') {
+            character === 'u') {
             vowelCount++;
         }
         else {
             consonantCount++;
+        }
+    }
+    if (lettersOnlyString.includes('y')) {
+        if (vowelCount === 0) {
+            vowelCount = lettersOnlyString.split('y').length - 1;
+            consonantCount = consonantCount - vowelCount;
+        }
+        else {
+            var lowercaseWordSplit = lowercaseString.split(' ');
+            for (var _a = 0, lowercaseWordSplit_1 = lowercaseWordSplit; _a < lowercaseWordSplit_1.length; _a++) {
+                var word = lowercaseWordSplit_1[_a];
+                if (word[word.length - 1] === 'y') {
+                    vowelCount++;
+                    consonantCount = consonantCount - 1;
+                }
+            }
         }
     }
     return {
@@ -104,6 +116,13 @@ function getVowelConsonantCounts(word) {
     };
 }
 exports.getVowelConsonantCounts = getVowelConsonantCounts;
+/**
+ * Gets the greatest common divisor of 2 different numbers.
+ *
+ * @param a number
+ * @param b number
+ * @returns greatest common divisior - number
+ */
 function getGreatestCommonDivisor(a, b) {
     if (a === 0) {
         return b;
@@ -111,4 +130,38 @@ function getGreatestCommonDivisor(a, b) {
     return getGreatestCommonDivisor(b % a, a);
 }
 exports.getGreatestCommonDivisor = getGreatestCommonDivisor;
+/**
+ * Calculates the suitability score for a particular driver and destination.
+ *
+ * If the length of the shipment's destination street name is even, the base suitability
+score (SS) is the number of vowels in the driver’s name multiplied by 1.5.
+ *
+ * If the length of the shipment's destination street name is odd, the base SS is the
+number of consonants in the driver’s name multiplied by 1.
+ * If the length of the shipment's destination street name shares any common factors
+(besides 1) with the length of the driver’s name, the SS is increased by 50% above the
+base SS.
+ *
+ * @param driverName
+ * @param destination
+ * @param driverVowelConsonantCounts
+ * @returns score
+ */
+function calculateSuitabilityScore(driverName, destination, driverVowelConsonantCounts) {
+    var score = 0;
+    var isDestinationEven = destination.length % 2 === 0;
+    if (isDestinationEven) {
+        score = driverVowelConsonantCounts.vowelCount * 1.5;
+    }
+    else {
+        score = driverVowelConsonantCounts.consonantCount * 1;
+    }
+    // Check for common factors
+    var greatestCommonDivisor = getGreatestCommonDivisor(driverName.length, destination.length);
+    if (greatestCommonDivisor > 1) {
+        score = score * 1.5;
+    }
+    return score;
+}
+exports.calculateSuitabilityScore = calculateSuitabilityScore;
 //# sourceMappingURL=index.js.map
