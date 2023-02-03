@@ -118,22 +118,27 @@ function getVowelConsonantCounts(word: string): {
   consonantCount: number;
 } {
   const lowercaseWord = word.toLowerCase();
+  const regexPattern = /[^A-Za-z]/g;
+  const lettersOnlyWord = lowercaseWord.replace(regexPattern, '');
   let vowelCount = 0;
   let consonantCount = 0;
 
-  for (const character of lowercaseWord) {
+  for (const character of lettersOnlyWord) {
     if (
       character === 'a' ||
       character === 'e' ||
       character === 'i' ||
       character === 'o' ||
-      character === 'u' ||
-      character === 'y'
+      character === 'u'
     ) {
       vowelCount++;
     } else {
       consonantCount++;
     }
+  }
+
+  if (vowelCount === 0 && lettersOnlyWord.includes('y')) {
+    vowelCount = lettersOnlyWord.split('y').length - 1;
   }
 
   return {
