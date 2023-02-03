@@ -1,6 +1,7 @@
-# 🤫 Top Secret Algorithm 🤫 - Platform Science 
+# 🤫 Top Secret Algorithm 🤫 - Platform Science
 
-> TODO
+`yarn start src/input_files/destinations_1.txt src/input_files/driver
+s_1.txt`
 
 ### Features
 
@@ -43,5 +44,6 @@ Format your code.
 Format your code in watch mode, waiting for file changes.
 
 ### References
+
 - https://github.com/stemmlerjs/simple-typescript-starter
 - https://khalilstemmler.com/blogs/typescript/node-starter-project/

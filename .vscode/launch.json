@@ -7,6 +7,10 @@
       "name": "Debug TypeScript in Node.js",
       "preLaunchTask": "npm: build",
       "program": "${workspaceFolder}/src/index.ts",
+      "args": [
+        "${workspaceFolder}/src/input_files/destinations_1.txt",
+        "${workspaceFolder}/src/input_files/drivers_1.txt"
+      ],
       "protocol": "inspector",
       "outFiles": ["${workspaceFolder}/build/**/*.js"],
       "sourceMaps": true,
