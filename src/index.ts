@@ -9,6 +9,7 @@ interface Suitability {
 interface DriverDestinationPair {
   driverName: string;
   destination: string;
+  score: number;
 }
 
 (() => {
@@ -94,6 +95,7 @@ interface DriverDestinationPair {
       driverDestinationPairs.push({
         driverName: drivers[suitabilityScore.driverIndex],
         destination: destinations[suitabilityScore.destinationIndex],
+        score: suitabilityScore.score,
       });
       totalSuitabilityScore = totalSuitabilityScore + suitabilityScore.score;
 
@@ -106,7 +108,7 @@ interface DriverDestinationPair {
   console.log('Total Suitability Score -> ' + totalSuitabilityScore);
   for (const driverDestinationPair of driverDestinationPairs) {
     console.log(
-      `Driver (${driverDestinationPair.driverName}) + Destination (${driverDestinationPair.destination})`,
+      `Score (${driverDestinationPair.score}) + Driver (${driverDestinationPair.driverName}) + Destination (${driverDestinationPair.destination})`,
     );
   }
 })();

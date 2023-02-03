@@ -66,6 +66,7 @@ var fs_1 = require("fs");
             driverDestinationPairs.push({
                 driverName: drivers[suitabilityScore.driverIndex],
                 destination: destinations[suitabilityScore.destinationIndex],
+                score: suitabilityScore.score,
             });
             totalSuitabilityScore = totalSuitabilityScore + suitabilityScore.score;
             driverIsAssigned[suitabilityScore.driverIndex] = true;
@@ -76,7 +77,7 @@ var fs_1 = require("fs");
     console.log('Total Suitability Score -> ' + totalSuitabilityScore);
     for (var _a = 0, driverDestinationPairs_1 = driverDestinationPairs; _a < driverDestinationPairs_1.length; _a++) {
         var driverDestinationPair = driverDestinationPairs_1[_a];
-        console.log("Driver (".concat(driverDestinationPair.driverName, ") + Destination (").concat(driverDestinationPair.destination, ")"));
+        console.log("Score (".concat(driverDestinationPair.score, ") + Driver (").concat(driverDestinationPair.driverName, ") + Destination (").concat(driverDestinationPair.destination, ")"));
     }
 })();
 function getVowelConsonantCounts(word) {

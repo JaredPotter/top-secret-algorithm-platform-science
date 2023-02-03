@@ -1,7 +1,14 @@
 # 🤫 Top Secret Algorithm 🤫 - Platform Science
 
-`yarn start src/input_files/destinations_1.txt src/input_files/driver
-s_1.txt`
+### Usage
+
+1. Run `yarn` or `yarn install`
+2. Run `yarn build` to transpile the typescript file into the output in `build/index.js`.
+3. Run `node build/index.js destinations.txt drivers.txt`
+
+### Example Command
+
+`node build/index.js src/input_files/destinations_1.txt src/input_files/drivers_1.txt`
 
 ### Features
 
