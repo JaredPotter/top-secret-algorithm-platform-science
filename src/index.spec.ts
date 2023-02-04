@@ -1,7 +1,7 @@
 import {
   getVowelConsonantCounts,
   getGreatestCommonDivisor,
-  calculateSuitabilityScore,
+  calculateSuitabilityScores,
 } from './index';
 
 debugger;
@@ -94,10 +94,10 @@ describe('getGreatestCommonDivisor()', () => {
   });
 });
 
-describe('calculateSuitabilityScore()', () => {
+describe('calculateSuitabilityScores()', () => {
   test('Jacquelyn Badcock, 382 Creekside Dr.', () => {
     const expected = 16.5;
-    const actual = calculateSuitabilityScore(
+    const actual = calculateSuitabilityScores(
       ['Jacquelyn Badcock'],
       ['382 Creekside Dr.'],
     )[0];
@@ -106,7 +106,7 @@ describe('calculateSuitabilityScore()', () => {
 
   test('Larry, 150 S 800 E APT G66.', () => {
     const expected = 4.5;
-    const actual = calculateSuitabilityScore(
+    const actual = calculateSuitabilityScores(
       ['Larry'],
       ['150 S 800 E APT G66.'],
     )[0];
@@ -115,9 +115,18 @@ describe('calculateSuitabilityScore()', () => {
 
   test('Lachlan Clemens, 382 Colonial Street', () => {
     const expected = 10;
-    const actual = calculateSuitabilityScore(
+    const actual = calculateSuitabilityScores(
       ['Lachlan Clemens'],
       ['382 Colonial Street'],
+    )[0];
+    expect(actual.score).toEqual(expected);
+  });
+
+  test('Impersonal Partner Inc, 11111 Sandy Creek Drive UT', () => {
+    const expected = 15.75;
+    const actual = calculateSuitabilityScores(
+      ['Impersonal Partner Inc'],
+      ['11111 Sandy Creek Drive UT'],
     )[0];
     expect(actual.score).toEqual(expected);
   });

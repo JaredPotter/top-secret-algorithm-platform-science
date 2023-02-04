@@ -15,7 +15,7 @@ import { Suitability } from './interfaces/Suitability';
   const destinations = parseDestinationFile(commandLineArguments[2]);
 
   // Calculate the suitability scores for every pair of driver + destination
-  const suitabilityScores: Suitability[] = calculateSuitabilityScore(
+  const suitabilityScores: Suitability[] = calculateSuitabilityScores(
     drivers,
     destinations,
   );
@@ -159,7 +159,7 @@ function getGreatestCommonDivisor(a: number, b: number): number {
 }
 
 /**
- * Calculates the suitability score for a particular driver and destination.
+ * Calculates the suitability scores for all driver / destination pairs.
  * 
  * If the length of the shipment's destination street name is even, the base suitability
 score (SS) is the number of vowels in the driver’s name multiplied by 1.5.
@@ -170,12 +170,11 @@ number of consonants in the driver’s name multiplied by 1.
 (besides 1) with the length of the driver’s name, the SS is increased by 50% above the
 base SS.
  *
- * @param driverName
- * @param destination 
- * @param driverVowelConsonantCounts 
- * @returns score
+ * @param drivers
+ * @param destinations
+ * @returns scores
  */
-function calculateSuitabilityScore(
+function calculateSuitabilityScores(
   drivers: string[],
   destinations: string[],
 ): Suitability[] {
@@ -259,5 +258,5 @@ function calculateTotalSuitabilityScoreAndDriverDestinationPairs(
 export {
   getVowelConsonantCounts,
   getGreatestCommonDivisor,
-  calculateSuitabilityScore,
+  calculateSuitabilityScores,
 };
