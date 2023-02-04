@@ -10,7 +10,7 @@
 
 - Basic file path validation
 - Primary function is wrapped in a self-executing function to allow for returning from the initial file validation checks.
-- Regular English letters (a-z); no letter with accents
+- Regular English letters (a-z); no letters with accents
 - 'y' is only a vowel under specific conditions (no other vowels and at the end of a word). However, we ignore the cases where 'y' is in the middle or end of a syllable.
 
 ### Coding Style
