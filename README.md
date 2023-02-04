@@ -11,7 +11,7 @@
 - Basic file path validation
 - Primary function is wrapped in a self-executing function to allow for returning from the initial file validation checks.
 - Regular English letters (a-z); no letters with accents
-- 'y' is only a vowel under specific conditions (no other vowels and at the end of a word). However, we ignore the cases where 'y' is in the middle or end of a syllable.
+- We only count 'y' as a vowel if there is 1.) no other vowel in the world or 2.) 'y' is at the end of a word. However, we do not count 'y' as a vowel in its other special cases - where 'y' is in the middle or end of a syllable due to complexity of parsing individual syllables.
 
 ### Coding Style
 
