@@ -4,6 +4,31 @@ exports.calculateSuitabilityScore = exports.getGreatestCommonDivisor = exports.g
 var fs_1 = require("fs");
 (function () {
     var commandLineArguments = process.argv;
+    validateArguments(commandLineArguments);
+    debugger;
+    // Read input files
+    var drivers = parseDriverFile(commandLineArguments[3]);
+    var destinations = parseDestinationFile(commandLineArguments[2]);
+    // Calculate the suitability scores for every pair of driver + destination
+    var suitabilityScores = calculateSuitabilityScore(drivers, destinations);
+    // Sort scores by descending order
+    suitabilityScores.sort(function (a, b) {
+        return b.score - a.score;
+    });
+    // Calculate total suitability score and match ideal drivers to destinations
+    var _a = calculateTotalSuitabilityScoreAndDriverDestinationPairs(suitabilityScores, drivers, destinations), totalSuitabilityScore = _a.totalSuitabilityScore, driverDestinationPairs = _a.driverDestinationPairs;
+    // Print output
+    console.log('Total Suitability Score -> ' + totalSuitabilityScore);
+    for (var _i = 0, driverDestinationPairs_1 = driverDestinationPairs; _i < driverDestinationPairs_1.length; _i++) {
+        var driverDestinationPair = driverDestinationPairs_1[_i];
+        console.log("Score (".concat(driverDestinationPair.score, ") + Driver (").concat(driverDestinationPair.driverName, ") + Destination (").concat(driverDestinationPair.destination, ")"));
+    }
+})();
+/**
+ * @param commandLineArguments
+ * @returns
+ */
+function validateArguments(commandLineArguments) {
     // Handle basic command line file validation
     if (!commandLineArguments[2]) {
         console.log('Shipment destinations text file is required.');
@@ -13,58 +38,27 @@ var fs_1 = require("fs");
         console.log('Driver names text file is required.');
         return;
     }
-    // Read input files
-    var destinations = (0, fs_1.readFileSync)(commandLineArguments[2], 'utf8')
+}
+/**
+ * @param driverFilePath
+ * @returns drivers
+ */
+function parseDriverFile(driverFilePath) {
+    var drivers = (0, fs_1.readFileSync)(driverFilePath, 'utf8')
         .split('\n')
         .filter(function (value) { return value; });
-    var drivers = (0, fs_1.readFileSync)(commandLineArguments[3], 'utf8')
+    return drivers;
+}
+/**
+ * @param destinationFilePath
+ * @returns destinations
+ */
+function parseDestinationFile(destinationFilePath) {
+    var destinations = (0, fs_1.readFileSync)(destinationFilePath, 'utf8')
         .split('\n')
         .filter(function (value) { return value; });
-    var suitabilityScores = [];
-    // Calculate the suitability scores for every pair of driver + destination
-    for (var i = 0; i < drivers.length; i++) {
-        var driverName = drivers[i];
-        var driverVowelConsonantCounts = getVowelConsonantCounts(driverName);
-        for (var j = 0; j < destinations.length; j++) {
-            var destination = destinations[j];
-            var score = calculateSuitabilityScore(driverName, destination, driverVowelConsonantCounts);
-            suitabilityScores.push({
-                score: score,
-                driverIndex: i,
-                destinationIndex: j,
-            });
-        }
-    }
-    // Sort scores by descending order
-    suitabilityScores.sort(function (a, b) {
-        return b.score - a.score;
-    });
-    var driverIsAssigned = {};
-    var destinationIsAssigned = {};
-    var totalSuitabilityScore = 0;
-    var driverDestinationPairs = [];
-    // Calculate the total suitability score and ideal driver + destination matches
-    for (var _i = 0, suitabilityScores_1 = suitabilityScores; _i < suitabilityScores_1.length; _i++) {
-        var suitabilityScore = suitabilityScores_1[_i];
-        if (!driverIsAssigned[suitabilityScore.driverIndex] &&
-            !destinationIsAssigned[suitabilityScore.destinationIndex]) {
-            driverDestinationPairs.push({
-                driverName: drivers[suitabilityScore.driverIndex],
-                destination: destinations[suitabilityScore.destinationIndex],
-                score: suitabilityScore.score,
-            });
-            totalSuitabilityScore = totalSuitabilityScore + suitabilityScore.score;
-            driverIsAssigned[suitabilityScore.driverIndex] = true;
-            destinationIsAssigned[suitabilityScore.destinationIndex] = true;
-        }
-    }
-    // Print output
-    console.log('Total Suitability Score -> ' + totalSuitabilityScore);
-    for (var _a = 0, driverDestinationPairs_1 = driverDestinationPairs; _a < driverDestinationPairs_1.length; _a++) {
-        var driverDestinationPair = driverDestinationPairs_1[_a];
-        console.log("Score (".concat(driverDestinationPair.score, ") + Driver (").concat(driverDestinationPair.driverName, ") + Destination (").concat(driverDestinationPair.destination, ")"));
-    }
-})();
+    return destinations;
+}
 /**
  * Counts the number of vowels and consonants in a string.
  *
@@ -147,21 +141,59 @@ base SS.
  * @param driverVowelConsonantCounts
  * @returns score
  */
-function calculateSuitabilityScore(driverName, destination, driverVowelConsonantCounts) {
-    var score = 0;
-    var isDestinationEven = destination.length % 2 === 0;
-    if (isDestinationEven) {
-        score = driverVowelConsonantCounts.vowelCount * 1.5;
+function calculateSuitabilityScore(drivers, destinations) {
+    var suitabilityScores = [];
+    for (var i = 0; i < drivers.length; i++) {
+        var driverName = drivers[i];
+        var driverVowelConsonantCounts = getVowelConsonantCounts(driverName);
+        for (var j = 0; j < destinations.length; j++) {
+            var destination = destinations[j];
+            var score = 0;
+            var isDestinationEven = destination.length % 2 === 0;
+            if (isDestinationEven) {
+                score = driverVowelConsonantCounts.vowelCount * 1.5;
+            }
+            else {
+                score = driverVowelConsonantCounts.consonantCount * 1;
+            }
+            // Check for common factors
+            var greatestCommonDivisor = getGreatestCommonDivisor(driverName.length, destination.length);
+            if (greatestCommonDivisor > 1) {
+                score = score * 1.5;
+            }
+            suitabilityScores.push({
+                score: score,
+                driverIndex: i,
+                destinationIndex: j,
+            });
+        }
     }
-    else {
-        score = driverVowelConsonantCounts.consonantCount * 1;
-    }
-    // Check for common factors
-    var greatestCommonDivisor = getGreatestCommonDivisor(driverName.length, destination.length);
-    if (greatestCommonDivisor > 1) {
-        score = score * 1.5;
-    }
-    return score;
+    return suitabilityScores;
 }
 exports.calculateSuitabilityScore = calculateSuitabilityScore;
+function calculateTotalSuitabilityScoreAndDriverDestinationPairs(suitabilityScores, drivers, destinations) {
+    var driverIsAssigned = {};
+    var destinationIsAssigned = {};
+    var totalSuitabilityScore = 0;
+    var driverDestinationPairs = [];
+    // Calculate the total suitability score and ideal driver + destination matches
+    for (var _i = 0, suitabilityScores_1 = suitabilityScores; _i < suitabilityScores_1.length; _i++) {
+        var suitabilityScore = suitabilityScores_1[_i];
+        if (!driverIsAssigned[suitabilityScore.driverIndex] &&
+            !destinationIsAssigned[suitabilityScore.destinationIndex]) {
+            driverDestinationPairs.push({
+                driverName: drivers[suitabilityScore.driverIndex],
+                destination: destinations[suitabilityScore.destinationIndex],
+                score: suitabilityScore.score,
+            });
+            totalSuitabilityScore = totalSuitabilityScore + suitabilityScore.score;
+            driverIsAssigned[suitabilityScore.driverIndex] = true;
+            destinationIsAssigned[suitabilityScore.destinationIndex] = true;
+        }
+    }
+    return {
+        totalSuitabilityScore: totalSuitabilityScore,
+        driverDestinationPairs: driverDestinationPairs,
+    };
+}
 //# sourceMappingURL=index.js.map

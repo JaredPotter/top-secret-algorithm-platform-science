@@ -1,96 +1,37 @@
 import { readFileSync } from 'fs';
-
-interface VowelConsonantCounts {
-  vowelCount: number;
-  consonantCount: number;
-}
-
-interface Suitability {
-  score: number;
-  driverIndex: number;
-  destinationIndex: number;
-}
-
-interface DriverDestinationPair {
-  driverName: string;
-  destination: string;
-  score: number;
-}
+import { DriverDestinationPair } from './interfaces/DriverDestinationPair';
+import { Suitability } from './interfaces/Suitability';
 
 (() => {
   const commandLineArguments = process.argv;
 
-  // Handle basic command line file validation
-  if (!commandLineArguments[2]) {
-    console.log('Shipment destinations text file is required.');
+  if (!validateArguments(commandLineArguments)) {
     return;
   }
 
-  if (!commandLineArguments[3]) {
-    console.log('Driver names text file is required.');
-    return;
-  }
-
+  debugger;
   // Read input files
-  const destinations = readFileSync(commandLineArguments[2], 'utf8')
-    .split('\n')
-    .filter((value) => value);
-  const drivers = readFileSync(commandLineArguments[3], 'utf8')
-    .split('\n')
-    .filter((value) => value);
-
-  const suitabilityScores: Suitability[] = [];
+  const drivers = parseDriverFile(commandLineArguments[3]);
+  const destinations = parseDestinationFile(commandLineArguments[2]);
 
   // Calculate the suitability scores for every pair of driver + destination
-  for (let i = 0; i < drivers.length; i++) {
-    const driverName = drivers[i];
-    const driverVowelConsonantCounts = getVowelConsonantCounts(driverName);
-
-    for (let j = 0; j < destinations.length; j++) {
-      const destination = destinations[j];
-      const score = calculateSuitabilityScore(
-        driverName,
-        destination,
-        driverVowelConsonantCounts,
-      );
-
-      suitabilityScores.push({
-        score,
-        driverIndex: i,
-        destinationIndex: j,
-      });
-    }
-  }
+  const suitabilityScores: Suitability[] = calculateSuitabilityScore(
+    drivers,
+    destinations,
+  );
 
   // Sort scores by descending order
   suitabilityScores.sort((a, b) => {
     return b.score - a.score;
   });
 
-  const driverIsAssigned: Record<number, boolean> = {};
-  const destinationIsAssigned: Record<number, boolean> = {};
-
-  let totalSuitabilityScore = 0;
-  const driverDestinationPairs: DriverDestinationPair[] = [];
-
-  // Calculate the total suitability score and ideal driver + destination matches
-  for (const suitabilityScore of suitabilityScores) {
-    if (
-      !driverIsAssigned[suitabilityScore.driverIndex] &&
-      !destinationIsAssigned[suitabilityScore.destinationIndex]
-    ) {
-      driverDestinationPairs.push({
-        driverName: drivers[suitabilityScore.driverIndex],
-        destination: destinations[suitabilityScore.destinationIndex],
-        score: suitabilityScore.score,
-      });
-
-      totalSuitabilityScore = totalSuitabilityScore + suitabilityScore.score;
-
-      driverIsAssigned[suitabilityScore.driverIndex] = true;
-      destinationIsAssigned[suitabilityScore.destinationIndex] = true;
-    }
-  }
+  // Calculate total suitability score and match ideal drivers to destinations
+  const { totalSuitabilityScore, driverDestinationPairs } =
+    calculateTotalSuitabilityScoreAndDriverDestinationPairs(
+      suitabilityScores,
+      drivers,
+      destinations,
+    );
 
   // Print output
   console.log('Total Suitability Score -> ' + totalSuitabilityScore);
@@ -100,6 +41,51 @@ interface DriverDestinationPair {
     );
   }
 })();
+
+/**
+ * @param commandLineArguments
+ * @returns
+ */
+function validateArguments(commandLineArguments: string[]): boolean {
+  // Handle basic command line file validation
+  if (!commandLineArguments[2]) {
+    console.log('Shipment destinations text file is required.');
+
+    return false;
+  }
+
+  if (!commandLineArguments[3]) {
+    console.log('Driver names text file is required.');
+
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @param driverFilePath
+ * @returns drivers
+ */
+function parseDriverFile(driverFilePath: string): string[] {
+  const drivers = readFileSync(driverFilePath, 'utf8')
+    .split('\n')
+    .filter((value) => value);
+
+  return drivers;
+}
+
+/**
+ * @param destinationFilePath
+ * @returns destinations
+ */
+function parseDestinationFile(destinationFilePath: string): string[] {
+  const destinations = readFileSync(destinationFilePath, 'utf8')
+    .split('\n')
+    .filter((value) => value);
+
+  return destinations;
+}
 
 /**
  * Counts the number of vowels and consonants in a string.
@@ -190,30 +176,84 @@ base SS.
  * @returns score
  */
 function calculateSuitabilityScore(
-  driverName: string,
-  destination: string,
-  driverVowelConsonantCounts: VowelConsonantCounts,
-): number {
-  let score = 0;
-  const isDestinationEven = destination.length % 2 === 0;
+  drivers: string[],
+  destinations: string[],
+): Suitability[] {
+  const suitabilityScores: Suitability[] = [];
 
-  if (isDestinationEven) {
-    score = driverVowelConsonantCounts.vowelCount * 1.5;
-  } else {
-    score = driverVowelConsonantCounts.consonantCount * 1;
+  for (let i = 0; i < drivers.length; i++) {
+    const driverName = drivers[i];
+    const driverVowelConsonantCounts = getVowelConsonantCounts(driverName);
+
+    for (let j = 0; j < destinations.length; j++) {
+      const destination = destinations[j];
+      let score = 0;
+      const isDestinationEven = destination.length % 2 === 0;
+
+      if (isDestinationEven) {
+        score = driverVowelConsonantCounts.vowelCount * 1.5;
+      } else {
+        score = driverVowelConsonantCounts.consonantCount * 1;
+      }
+
+      // Check for common factors
+      const greatestCommonDivisor = getGreatestCommonDivisor(
+        driverName.length,
+        destination.length,
+      );
+
+      if (greatestCommonDivisor > 1) {
+        score = score * 1.5;
+      }
+
+      suitabilityScores.push({
+        score,
+        driverIndex: i,
+        destinationIndex: j,
+      });
+    }
   }
 
-  // Check for common factors
-  const greatestCommonDivisor = getGreatestCommonDivisor(
-    driverName.length,
-    destination.length,
-  );
+  return suitabilityScores;
+}
 
-  if (greatestCommonDivisor > 1) {
-    score = score * 1.5;
+function calculateTotalSuitabilityScoreAndDriverDestinationPairs(
+  suitabilityScores: Suitability[],
+  drivers: string[],
+  destinations: string[],
+): {
+  totalSuitabilityScore: number;
+  driverDestinationPairs: DriverDestinationPair[];
+} {
+  const driverIsAssigned: Record<number, boolean> = {};
+  const destinationIsAssigned: Record<number, boolean> = {};
+
+  let totalSuitabilityScore = 0;
+  const driverDestinationPairs: DriverDestinationPair[] = [];
+
+  // Calculate the total suitability score and ideal driver + destination matches
+  for (const suitabilityScore of suitabilityScores) {
+    if (
+      !driverIsAssigned[suitabilityScore.driverIndex] &&
+      !destinationIsAssigned[suitabilityScore.destinationIndex]
+    ) {
+      driverDestinationPairs.push({
+        driverName: drivers[suitabilityScore.driverIndex],
+        destination: destinations[suitabilityScore.destinationIndex],
+        score: suitabilityScore.score,
+      });
+
+      totalSuitabilityScore = totalSuitabilityScore + suitabilityScore.score;
+
+      driverIsAssigned[suitabilityScore.driverIndex] = true;
+      destinationIsAssigned[suitabilityScore.destinationIndex] = true;
+    }
   }
 
-  return score;
+  return {
+    totalSuitabilityScore,
+    driverDestinationPairs,
+  };
 }
 
 export {

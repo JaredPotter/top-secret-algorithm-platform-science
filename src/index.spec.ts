@@ -4,6 +4,8 @@ import {
   calculateSuitabilityScore,
 } from './index';
 
+debugger;
+
 describe('getVowelConsonantCounts()', () => {
   test('Jared Potter', () => {
     const expectedVowelCount = 4;
@@ -96,35 +98,27 @@ describe('calculateSuitabilityScore()', () => {
   test('Jacquelyn Badcock, 382 Creekside Dr.', () => {
     const expected = 16.5;
     const actual = calculateSuitabilityScore(
-      'Jacquelyn Badcock',
-      '382 Creekside Dr.',
-      {
-        vowelCount: 5,
-        consonantCount: 11,
-      },
-    );
-    expect(actual).toEqual(expected);
+      ['Jacquelyn Badcock'],
+      ['382 Creekside Dr.'],
+    )[0];
+    expect(actual.score).toEqual(expected);
   });
 
   test('Larry, 150 S 800 E APT G66.', () => {
     const expected = 4.5;
-    const actual = calculateSuitabilityScore('Larry', '150 S 800 E APT G66.', {
-      vowelCount: 2,
-      consonantCount: 3,
-    });
-    expect(actual).toEqual(expected);
+    const actual = calculateSuitabilityScore(
+      ['Larry'],
+      ['150 S 800 E APT G66.'],
+    )[0];
+    expect(actual.score).toEqual(expected);
   });
 
   test('Lachlan Clemens, 382 Colonial Street', () => {
     const expected = 10;
     const actual = calculateSuitabilityScore(
-      'Lachlan Clemens',
-      '382 Colonial Street',
-      {
-        vowelCount: 4,
-        consonantCount: 10,
-      },
-    );
-    expect(actual).toEqual(expected);
+      ['Lachlan Clemens'],
+      ['382 Colonial Street'],
+    )[0];
+    expect(actual.score).toEqual(expected);
   });
 });
