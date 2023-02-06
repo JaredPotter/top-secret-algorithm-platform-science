@@ -130,4 +130,22 @@ describe('calculateSuitabilityScores()', () => {
     )[0];
     expect(actual.score).toEqual(expected);
   });
+
+  test('gym gym, 11111 Sandy Creek Drive UT', () => {
+    const expected = 3;
+    const actual = calculateSuitabilityScores(
+      ['gym gym'],
+      ['11111 Sandy Creek Drive UT'],
+    )[0];
+    expect(actual.score).toEqual(expected);
+  });
+
+  test('candy candy, 11111 Sandy Creek Drive UT', () => {
+    const expected = 6;
+    const actual = calculateSuitabilityScores(
+      ['candy candy'],
+      ['11111 Sandy Creek Drive UT'],
+    )[0];
+    expect(actual.score).toEqual(expected);
+  });
 });
